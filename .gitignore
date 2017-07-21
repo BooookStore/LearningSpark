@@ -3,3 +3,6 @@
 
 # 生成ファイル
 /target/
+
+# SBT生成ファイル
+/project/target/
