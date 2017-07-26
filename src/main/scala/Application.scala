@@ -16,16 +16,21 @@ object Application extends App {
   // あらゆるSparkのプログラムやシェルのセッションは大まかに次のように動作する。
 
   // 1.外部のデータから何らかの入力RDDを生成。
-  val lines = sc.textFile("./README.md")
+  val lines = sc.textFile("./SampleTextFile.md")
 
   // 2.RDDを別のRDDへ変換
   val pythonLines = lines.filter(_.contains("python"))
+  val scalaLines = lines.filter(_.contains("scala"))
+
+  val result = pythonLines.union(scalaLines)
 
   // 3.永続化したい中間的なRDDがあればメモリへ永続化する
-  pythonLines.persist()
+  result.persist()
 
   // 4.アクションを呼び並列演算を実行し、結果を取得する
-  val count = pythonLines.count()
+  val countLine = result.first()
+
+  println(s"line count is [$countLine]")
 
   // SparkContextをストップ
   // 最後に呼ばないと、例外が発生
