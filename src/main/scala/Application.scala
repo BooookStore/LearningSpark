@@ -19,18 +19,18 @@ object Application extends App {
   val lines = sc.textFile("./SampleTextFile.md")
 
   // 2.RDDを別のRDDへ変換
-  val pythonLines = lines.filter(_.contains("python"))
-  val scalaLines = lines.filter(_.contains("scala"))
+  val linesA = lines.filter(_.contains("a"))
+  val linesB = lines.filter(_.contains("b"))
 
-  val result = pythonLines.union(scalaLines)
+  val result = linesA.union(linesB)
 
   // 3.永続化したい中間的なRDDがあればメモリへ永続化する
   result.persist()
 
   // 4.アクションを呼び並列演算を実行し、結果を取得する
-  val countLine = result.first()
+  val countLine = result.take(10)
 
-  println(s"line count is [$countLine]")
+  countLine.foreach(l => println(s"> $l"))
 
   // SparkContextをストップ
   // 最後に呼ばないと、例外が発生
