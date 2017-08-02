@@ -2,28 +2,36 @@ import org.apache.spark.SparkContext.rddToPairRDDFunctions
 import org.apache.spark.{SparkConf, SparkContext}
 
 /**
-  * キー・値ペアの処理
+  * キー・値ペアのRDDに対するサンプルコード
   */
 object KeyValue extends App {
 
   val sparkConf = new SparkConf().setSparkHome("local").setAppName("KeyValue")
   val sparkContext = new SparkContext(sparkConf)
 
-  val lines = sparkContext.textFile("./SampleTextFile.md")
-
-  // キー・値ペアのRDDを生成するにはタプル群を返す必要がある。
-  // タプル軍からなるRDDに対しては、暗黙の変換がある。
-  val pairs = lines.map(x => (x.split(" ")(0), x))
-
-  // 20文字以上の行をフィルタリングより取り除く
-  val filterd = pairs.filter { case (key, value) => value.length > 20 }
-
-  filterd.foreach(p => println(s"\t$p"))
-
+  basicKeyValueOperation(sparkContext)
   collection(sparkContext)
 
   /**
+    * 基本的なキー・値ペアの処理
+    * @param sparkContext
+    */
+  def basicKeyValueOperation(sparkContext: SparkContext): Unit = {
+    val lines = sparkContext.textFile("./SampleTextFile.md")
+
+    // キー・値ペアのRDDを生成するにはタプル群を返す必要がある。
+    // タプル軍からなるRDDに対しては、暗黙の変換がある。
+    val pairs = lines.map(x => (x.split(" ")(0), x))
+
+    // 20文字以上の行をフィルタリングより取り除く
+    val filterd = pairs.filter { case (key, value) => value.length > 20 }
+
+    filterd.foreach(p => println(s"\t$p"))
+  }
+
+  /**
     * 集計処理の例
+    * @param sparkContext
     */
   def collection(sparkContext: SparkContext): Unit = {
 
