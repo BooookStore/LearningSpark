@@ -17,7 +17,7 @@ object KeyValue extends App {
   /**
     * 基本的なキー・値ペアの処理
     *
-    * @param sparkContext
+    * @param sparkContext コンテキスト
     */
   def basicKeyValueOperation(sparkContext: SparkContext): Unit = {
     val lines = sparkContext.textFile("./SampleTextFile.md")
@@ -27,7 +27,7 @@ object KeyValue extends App {
     val pairs = lines.map(x => (x.split(" ")(0), x))
 
     // 20文字以上の行をフィルタリングより取り除く
-    val filterd = pairs.filter { case (key, value) => value.length > 20 }
+    val filterd = pairs.filter { case (_, value) => value.length > 20 }
 
     filterd.foreach(p => println(s"\t$p"))
   }
@@ -35,7 +35,7 @@ object KeyValue extends App {
   /**
     * 集計処理の例
     *
-    * @param sparkContext
+    * @param sparkContext コンテキスト
     */
   def collection(sparkContext: SparkContext): Unit = {
 
@@ -89,9 +89,9 @@ object KeyValue extends App {
   /**
     * 結合の例
     *
-    * @param sparkContext
+    * @param sparkContext コンテキスト
     */
-  def union(sparkContext: SparkContext) = {
+  def union(sparkContext: SparkContext): Unit = {
 
     // データセットを用意
     val storeAddress = sparkContext.parallelize(List(
@@ -123,17 +123,17 @@ object KeyValue extends App {
   /**
     * ソートの例
     *
-    * @param sparkContext
+    * @param sparkContext コンテキスト
     */
-  def sort(sparkContext: SparkContext) = {
+  def sort(sparkContext: SparkContext): Unit = {
     val alphabet = sparkContext.parallelize('A' to 'Z').map(x => (x, x))
 
     // 要素の順序を決定する
     // 暗黙的に使用されるため、必ずimplicitで宣言する必要あり
     implicit val sortIntegersByString = new Ordering[String] {
-      override def compare(a: String, b: String) = a.compare(b)
+      override def compare(a: String, b: String): Int = a.compare(b)
     }
-    val sorted = alphabet.sortByKey();
+    val sorted = alphabet.sortByKey()
 
     println("# sortByKeyによるデータのソート")
     sorted.collect().take(10).foreach(a => println(s"(${a._1},${a._2})"))
