@@ -1,4 +1,4 @@
-import org.apache.spark.SparkContext.rddToPairRDDFunctions
+import org.apache.spark.SparkContext.{rddToOrderedRDDFunctions, rddToPairRDDFunctions}
 import org.apache.spark.{SparkConf, SparkContext}
 
 /**
@@ -11,9 +11,12 @@ object KeyValue extends App {
 
   basicKeyValueOperation(sparkContext)
   collection(sparkContext)
+  union(sparkContext)
+  sort(sparkContext)
 
   /**
     * 基本的なキー・値ペアの処理
+    *
     * @param sparkContext
     */
   def basicKeyValueOperation(sparkContext: SparkContext): Unit = {
@@ -31,6 +34,7 @@ object KeyValue extends App {
 
   /**
     * 集計処理の例
+    *
     * @param sparkContext
     */
   def collection(sparkContext: SparkContext): Unit = {
@@ -80,5 +84,58 @@ object KeyValue extends App {
     println("# combineByKeyを利用した平均値の計算")
     result.collectAsMap().foreach(println(_))
 
+  }
+
+  /**
+    * 結合の例
+    *
+    * @param sparkContext
+    */
+  def union(sparkContext: SparkContext) = {
+
+    // データセットを用意
+    val storeAddress = sparkContext.parallelize(List(
+      ("Ritual", "1026 Valencia St"),
+      ("Philz", "748 Ban Ness Ave"),
+      ("Philz", "3101 24th St"),
+      ("Starbucks", "seattle")
+    ))
+
+    val storeRating = sparkContext.parallelize(List(
+      ("Ritual", 4.9),
+      ("Philz", 4.8)
+    ))
+
+    // join()を使用し、内部結合を行う
+    // 双方のペアRDDに含まれるキーだけが出力される
+    // 同じキーに対して複数の値がある場合には、結果のペアRDDには２つの入力RDDのそのキーで可能なすべての値の組み合わせに対してエントリが作られる
+    val joined = storeAddress.join(storeRating)
+
+    println("# joinによる内部結合")
+    joined.foreach(j => println(s"\t[${j._1} -> ${j._2._1}(${j._2._2})]"))
+
+    val leftJoined = storeAddress.leftOuterJoin(storeRating)
+
+    println("# lefOuterJoinによる外部結合")
+    leftJoined.foreach(j => println(s"\t[${j._1} -> ${j._2._1}(${j._2._2})]"))
+  }
+
+  /**
+    * ソートの例
+    *
+    * @param sparkContext
+    */
+  def sort(sparkContext: SparkContext) = {
+    val alphabet = sparkContext.parallelize('A' to 'Z').map(x => (x, x))
+
+    // 要素の順序を決定する
+    // 暗黙的に使用されるため、必ずimplicitで宣言する必要あり
+    implicit val sortIntegersByString = new Ordering[String] {
+      override def compare(a: String, b: String) = a.compare(b)
+    }
+    val sorted = alphabet.sortByKey();
+
+    println("# sortByKeyによるデータのソート")
+    sorted.collect().take(10).foreach(a => println(s"(${a._1},${a._2})"))
   }
 }
